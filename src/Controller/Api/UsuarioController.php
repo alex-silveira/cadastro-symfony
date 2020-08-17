@@ -2,28 +2,49 @@
 
 namespace App\Controller\Api;
 
-use Symfony\Component\Routing\Annotation\JsonResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-
+use App\Entity\Usuario;
 /**
  * @Route("api/v1", name="api_v1_usuario_")
  */
 
-class UsuarioController
+class UsuarioController extends AbstractController
 {
     /**
      * @Route("/lista", methods={"GET"}, name="lista")
      */
     public function lista() : JsonResponse
     {
-        return new JsonResponse(["Implementar lista na API"]);
+        $doctrine = $this->getDoctrine()->getRepository(Usuario::class);
+
+        return new JsonResponse($doctrine->pegarTodos());
     }
 
     /**
      * @Route("/cadastra", methods={"POST"}, name="cadastra")
      */
-    public function cadastra() : JsonResponse
+    public function cadastra(Request $request) : Response
     {
-        return new JsonResponse(["Implementar cadastro na API"]);
+        $data = $request->request->all();  
+         
+         $usuario = new Usuario;
+         $usuario->setNome($data['nome']);
+         $usuario->setEmail($data['email']);
+
+         $doctrine = $this->getDoctrine()->getManager();
+         $doctrine->persist($usuario);
+         $doctrine->flush();
+
+         if($doctrine->contains($usuario)) 
+         {
+            return new JsonResponse("ok", 200);
+         }
+         else {
+            return new JsonResponse("error", 404);
+         } 
     }
 }
