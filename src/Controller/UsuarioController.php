@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Usuario;
 
 /**
  * @Route("/", name="web_usuario_")
@@ -18,19 +20,36 @@ class UsuarioController extends AbstractController
 
     public function index() : Response
     {
-        //return $this->render("usuario/form.html.twig"); 
-        return $this->render("usuario/sucesso.html.twig",  [
-            'fulano' => "Alex"
-        ]); 
-
+        return $this->render("usuario/form.html.twig"); 
     }
 
     /**
      * @Route("/salvar", methods={"POST"}, name="salvar")
      */
 
-     public function salvar() : Response
+     public function salvar(Request $request) : Response
      {
-         return new Response("Implementar gravação ao banco de dados");
+         $data = $request->request->all();  
+         
+         $usuario = new Usuario();
+
+         $usuario->setNome($data['nome']);
+         $usuario->setEmail($data['email']);
+
+         $doctrine = $this->getDoctrine()->getManager();
+         $doctrine->persist($usuario);
+         $doctrine->flush();
+
+         if($doctrine->contains($usuario)) 
+         {
+            return $this->render("usuario/sucesso.html.twig", [
+                "fulano" => $data['nome']
+            ]);
+         }
+         else {
+            return $this->render("usuario/erro.html.twig", [
+                "fulano" => $data['nome']
+            ]);
+         } 
      }
 }
